@@ -117,6 +117,9 @@ class NaiveHetDataLoader(object):
 
         return label_seed
     
+    def __len__(self):
+        return self.n_batch
+    
     def sample_seeds(self) -> List:
         if self.seed_epoch:
             return self.g.get_seed_nodes(self.ts_range)
@@ -130,3 +133,59 @@ class NaiveHetDataLoader(object):
                     cands, bz, replace=len(cands)<bz)
                 )
         return rval
+    def iter_sage(self):
+        if self.cache_result and self.cache and len(self.cache) == len(self):
+            self.logger.info('DL loaded from cache')
+            for e in self.cache:
+                yield e
+        else:
+            from torch.utils.data import DataLoader
+            g = self.g
+            seeds = self.sample_seeds()
+            seeds_encoded = [g.node_encode[e] for e in seeds]
+            sampler = self.get_sage_neighbor_sampler(seeds=seeds)
+            bz = sum(self.batch_size) if not self.seed_epoch else self.batch_size
+            dl = DataLoader(
+                seeds_encoded, batch_size=bz, shuffle=self.shuffle)
+            
+            if self.cache_result:
+                self.cache = []
+            for encoded_seeds in dl:
+                batch_size, encoded_node_ids, adjs = sampler.sample(encoded_seeds)
+                encoded_node_ids = encoded_node_ids.cpu().numpy()
+                edge_ids = self.convert_sage_adjs_to_edge_ids(adjs)
+                encoded_seeds = encoded_seeds.numpy()
+                if self.cache_result:
+                    self.cache.append([encoded_seeds, encoded_node_ids, edge_ids])
+                yield encoded_seeds, encoded_node_ids, edge_ids
+    
+    def convert_sage_adjs_to_edge_ids(self, adjs):
+        from torch_geometric.data.sampler import Adj
+        if isinstance(adjs, Adj):
+            adjs = [adjs]
+
+        if '-merged' not in self.method:
+            return [a[1].cpu().numpy() for a in adjs]
+        
+    def get_sage_neighbor_sampler(self, seeds):
+        from torch_geometric.data.sampler import NeighborSampler
+        g = self.g
+        g.node_type_encode
+
+        edge_index = g.edge_list_encoded
+        edge_index = torch.LongTensor(edge_index)
+        
+        node_idx = np.array([g.node_encode[e] for e in seeds
+                             if g.node_ts[e]< self.ts_range])
+        
+        node_idx = torch.LongTensor(node_idx)
+
+        if self.method in {'sage', 'sage-merged'}:
+            return NeighborSampler(
+                sizes=self.width,
+                edge_index=edge_index, 
+                node_idx=node_idx, num_nodes=len(g.node_type),
+                batch_size=sum(self.batch_size) if not self.seed_epoch else self.batch_size,
+                num_workers=self.num_workers, 
+                shuffle=self.shuffle
+            )
