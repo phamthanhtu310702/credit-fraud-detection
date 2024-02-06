@@ -1,0 +1,13 @@
+relation_addr1_edgelist.csv
+relation_addr2_edgelist.csv
+relation_card1_edgelist.csv
+relation_card2_edgelist.csv
+relation_card3_edgelist.csv
+relation_card4_edgelist.csv
+relation_card5_edgelist.csv
+relation_card6_edgelist.csv
+relation_DeviceInfo_edgelist.csv
+relation_DeviceType_edgelist.csv
+relation_ProductCD_edgelist.csv
+relation_P_emaildomain_edgelist.csv
+relation_R_emaildomain_edgelist.csv

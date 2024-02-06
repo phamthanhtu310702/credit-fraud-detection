@@ -20,24 +20,23 @@ import numpy as np
 import torch
 from torch_geometric.data import Data as PygData
 
-
 import tqdm
 
-from xfraud.glib.utils import timeit
+from glib.utils import timeit
 
 
 class NaiveHetGraph(object):
 
     logger = logging.getLogger('native-het-g')
 
-    def __init__(self, node_type: Dict[int, str], edge_list: Tuple[int, int, str],
-                 seed_label: Dict[int, int], node_ts: Dict[int, int]):
+    def __init__(self, node_type: Dict[str, str], node_dst_value: Dict[str, Union[str, int]],edge_list: Tuple[str, str, str],
+                 seed_label: Dict[str, int], node_ts: Dict[str, int]):
         self.logger.setLevel(logging.INFO)
         self.node_type = node_type
+        self.node_dst_value = node_dst_value
         self.node_type_encode = self.get_node_type_encoder(node_type)        
-
-        self.seed_label= seed_label
         self.node_ts = node_ts
+        self.seed_label= seed_label
 
         with timeit(self.logger, 'node-enc-init'):
             self.node_encode = dict((n, i) for i, n in enumerate(node_type.keys())) # encode to node_idx
@@ -68,18 +67,21 @@ class NaiveHetGraph(object):
     def get_node_type_encoder(self, node_type: Dict[int, str]):
         types = sorted(list(set(node_type.values())))
         return dict((v, i) for i, v in enumerate(types))
+    
+    def update_graph(self):
+        return 1
 
 class NaiveHetDataLoader(object):
     
     logger = logging.getLogger('native-het-dl')
 
     def __init__(self, width: Union[int, List], depth: int, 
-                 g: NaiveHetGraph, ts_range: Set, batch_size: int, n_batch: int, seed_epoch: bool, 
+                 g: NaiveHetGraph, ts_range: Set, time_interval : tuple ,batch_size: int, n_batch: int, seed_epoch: bool, 
                  shuffle: bool, num_workers: int, method: str, cache_result: bool=False):
 
         self.g = g
         self.ts_range = ts_range
-
+        self.time_interval = time_interval
         if seed_epoch:
             batch_size = sum(batch_size)
             n_batch = int(np.ceil(len(self.seeds)/batch_size))
@@ -130,9 +132,18 @@ class NaiveHetDataLoader(object):
             cands = lbl_sd[i]
             rval.extend(
                 np.random.choice(
-                    cands, bz, replace=len(cands)<bz)
+                    cands, self.batch_size[i], replace=len(cands)<self.batch_size[i])
                 )
         return rval
+    def __iter__(self):
+        import gc; gc.collect()  #FIXME
+        if self.method in {'sage', 'sage-merged', 
+                           'dw-sage', 'dw-sage-merged',
+                           'dw0-ntw1-sage', 'dw1-ntw0-sage'}:
+            yield from self.iter_sage()
+        else:
+            raise NotImplementedError(
+                'unknown sampling method %s' % self.method)
     def iter_sage(self):
         if self.cache_result and self.cache and len(self.cache) == len(self):
             self.logger.info('DL loaded from cache')
@@ -160,7 +171,7 @@ class NaiveHetDataLoader(object):
                 yield encoded_seeds, encoded_node_ids, edge_ids
     
     def convert_sage_adjs_to_edge_ids(self, adjs):
-        from torch_geometric.data.sampler import Adj
+        from torch_geometric.loader.neighbor_sampler import Adj
         if isinstance(adjs, Adj):
             adjs = [adjs]
 
@@ -168,7 +179,7 @@ class NaiveHetDataLoader(object):
             return [a[1].cpu().numpy() for a in adjs]
         
     def get_sage_neighbor_sampler(self, seeds):
-        from torch_geometric.data.sampler import NeighborSampler
+        from torch_geometric.loader.neighbor_sampler import NeighborSampler
         g = self.g
         g.node_type_encode
 
@@ -176,7 +187,7 @@ class NaiveHetDataLoader(object):
         edge_index = torch.LongTensor(edge_index)
         
         node_idx = np.array([g.node_encode[e] for e in seeds
-                             if g.node_ts[e]< self.ts_range])
+                             if (self.time_interval[0] <= g.node_ts[e] <= self.time_interval[1])])
         
         node_idx = torch.LongTensor(node_idx)
 
@@ -184,8 +195,5 @@ class NaiveHetDataLoader(object):
             return NeighborSampler(
                 sizes=self.width,
                 edge_index=edge_index, 
-                node_idx=node_idx, num_nodes=len(g.node_type),
-                batch_size=sum(self.batch_size) if not self.seed_epoch else self.batch_size,
-                num_workers=self.num_workers, 
-                shuffle=self.shuffle
+                node_idx=node_idx, num_nodes=len(g.node_type), 
             )

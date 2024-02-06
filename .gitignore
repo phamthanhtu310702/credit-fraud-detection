@@ -1,2 +1,9 @@
 *.ipynb
 test.py
+__pycache__
+data/
+data_processing/
+fraud_data
+processed_data
+test_request_lambda.json
+sample.json
