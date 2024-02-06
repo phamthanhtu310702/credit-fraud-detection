@@ -1,0 +1,17 @@
+fire
+joblib
+MarkupSafe
+matplotlib
+networkx
+Pillow
+pyarrow
+requests
+scikit-learn
+scipy
+seaborn
+pytorch-ignite
+tqdm==4.56.0
+urllib3==1.26.6
+torch_geometric 
+torch_scatter 
+torch_sparse

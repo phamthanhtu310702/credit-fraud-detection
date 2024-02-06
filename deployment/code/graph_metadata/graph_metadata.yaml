@@ -1,0 +1,119 @@
+cat_node_types:
+- card4
+- card6
+- DeviceInfo
+- DeviceType
+- ProductCD
+- P_emaildomain
+- R_emaildomain
+edge_type_encode:
+  TransactionID<>DeviceInfo: 13
+  TransactionID<>DeviceType: 12
+  TransactionID<>P_emaildomain: 6
+  TransactionID<>ProductCD: 10
+  TransactionID<>R_emaildomain: 7
+  TransactionID<>addr1: 4
+  TransactionID<>addr2: 9
+  TransactionID<>card1: 2
+  TransactionID<>card2: 8
+  TransactionID<>card3: 3
+  TransactionID<>card4: 1
+  TransactionID<>card5: 5
+  TransactionID<>card6: 11
+  _self: 0
+fn_mapping:
+  DeviceInfo:
+    MacOS: 3
+    Windows: 2
+    iOS Device: 1
+    others: 0
+  DeviceType:
+    desktop: 1
+    mobile: 0
+  P_emaildomain:
+    anonymous.com: 4
+    aol.com: 7
+    att.net: 20
+    bellsouth.net: 24
+    centurylink.net: 28
+    cfl.rr.com: 32
+    charter.net: 12
+    comcast.net: 9
+    cox.net: 11
+    earthlink.net: 30
+    embarqmail.com: 15
+    gmail: 18
+    gmail.com: 0
+    hotmail.com: 5
+    hotmail.es: 31
+    icloud.com: 16
+    juno.com: 21
+    live.com: 19
+    live.com.mx: 17
+    mail.com: 3
+    me.com: 8
+    msn.com: 25
+    optonline.net: 10
+    outlook.com: 1
+    prodigy.net.mx: 14
+    q.com: 26
+    roadrunner.com: 33
+    rocketmail.com: 13
+    sbcglobal.net: 23
+    servicios-ta.com: 29
+    verizon.net: 6
+    yahoo.com: 2
+    yahoo.com.mx: 27
+    ymail.com: 22
+  ProductCD:
+    C: 2
+    H: 1
+    R: 4
+    S: 3
+    W: 0
+  R_emaildomain:
+    anonymous.com: 3
+    aol.com: 10
+    att.net: 12
+    bellsouth.net: 15
+    charter.net: 4
+    comcast.net: 6
+    gmail.com: 0
+    hotmail.com: 1
+    hotmail.es: 18
+    icloud.com: 8
+    juno.com: 11
+    live.com.mx: 7
+    msn.com: 19
+    outlook.com: 2
+    prodigy.net.mx: 5
+    servicios-ta.com: 16
+    verizon.net: 13
+    yahoo.com: 9
+    yahoo.com.mx: 14
+    ymail.com: 17
+  card4:
+    american express: 3
+    discover: 0
+    mastercard: 1
+    visa: 2
+  card6:
+    credit: 0
+    debit: 1
+node_type_encoder:
+  DeviceInfo: 0
+  DeviceType: 1
+  P_emaildomain: 2
+  ProductCD: 3
+  R_emaildomain: 4
+  TransactionID: 5
+  addr1: 6
+  addr2: 7
+  card1: 8
+  card2: 9
+  card3: 10
+  card4: 11
+  card5: 12
+  card6: 13
+num_edge_type: 14
+num_node_type: 14
