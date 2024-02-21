@@ -3,6 +3,8 @@ from contextlib import contextmanager
 import os
 import torch
 import torch.nn as nn
+import numpy as np
+import torch.nn.functional as F
 import logging
 
 
@@ -93,3 +95,28 @@ class EarlyStopping(object):
             model[0].memory_bank.node_raw_messages = torch.load(self.save_model_nonparametric_data_path, map_location=map_location)
 
 
+def criterion(prediction_dict, labels, model, mode, device):
+
+    # for key, value in prediction_dict.items():
+    #     if key != 'root_embedding' and key != 'group' and key != 'dev':
+    #         prediction_dict[key] = value[labels > -1]
+
+    labels = labels[labels > -1]
+    logits = prediction_dict['logits']
+
+    loss_classify = F.binary_cross_entropy_with_logits(
+        logits, labels, reduction='none')
+    loss_classify = torch.mean(loss_classify)
+
+    loss = loss_classify.clone()
+    
+    if mode == 'sad' and model != None:
+        loss_anomaly = torch.Tensor(0).to(device)
+        loss_supc = torch.Tensor(0).to(device)
+        alpha = 1e-1
+        beta = 1e-3
+        loss_anomaly = model.gdn.dev_loss(torch.squeeze(labels), torch.squeeze(prediction_dict['anom_score']), torch.squeeze(prediction_dict['time'].to(device)))
+        loss_supc = model.suploss(prediction_dict['root_embedding'], prediction_dict['group'], prediction_dict['dev'])
+        loss += alpha * loss_anomaly + beta * loss_supc
+
+    return loss, loss_classify

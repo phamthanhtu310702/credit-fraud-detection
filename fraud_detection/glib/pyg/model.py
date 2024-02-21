@@ -117,7 +117,7 @@ class HetNet(nn.Module):
         else:
             raise NotImplementedError()
 
-        x = self.out(x)
+        source_node_embedding = self.out(x)
         x = self.affinity_score(x)
-        x = torch.reshape(x, [-1])
-        return x
+        logits  = torch.reshape(x, [-1])
+        return logits  , source_node_embedding

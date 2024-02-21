@@ -2,7 +2,6 @@ import os
 import boto3
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
-from sagemaker.enums import EndpointType
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
@@ -13,14 +12,14 @@ sagemakerSession = sagemaker.session.Session(boto3.session.Session(region_name=r
 
 class JSONPredictor(Predictor):
     def __init__(self, endpoint_name, sagemaker_session):
-        super(JSONPredictor, self).__init__(endpoint_name, sagemaker_session, json_serializer, json_deserializer)
+        super(JSONPredictor, self).__init__(endpoint_name, sagemaker_session, JSONSerializer, JSONDeserializer)
 
 env = {
     'SAGEMAKER_MODEL_SERVER_WORKERS': '1',
     'SAGEMAKER_MODEL_SERVER_TIMEOUT' : '300'
 }
 model_data = 's3://fraud-transaction-detection/model.tar.gz'
-fd_sl_model = PyTorchModel(image_uri = '177317263539.dkr.ecr.us-east-1.amazonaws.com/pytorch-gnn7:nvgpu',
+fd_sl_model = PyTorchModel(image_uri = 'xxx.dkr.ecr.us-east-1.amazonaws.com/pytorch-gnn7:nvgpu',
                            name = 'inference-gnn-model',
                            model_data= model_data,
                            role=role,

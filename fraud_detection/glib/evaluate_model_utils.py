@@ -77,7 +77,9 @@ def evaluate_model_node_classification(g , input_emb: nn.Module , model: nn.Modu
             logits = model(input)
             predicts =  logits.sigmoid().to(device)
 
-            loss = criterion(logits, y_label)
+            prediction_dict = {}
+            prediction_dict['logits'] = logits
+            loss, loss_classify = criterion(prediction_dict, y_label, model = None, mode = 'inference', device = device)
 
             evaluate_total_loss.append(loss.item())
 
