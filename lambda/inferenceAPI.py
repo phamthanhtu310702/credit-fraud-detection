@@ -302,7 +302,6 @@ def lambda_handler(event, context):
     graph_input.insert_new_transaction_vertex_and_edge(trans_dict, identity_dict , target_id, vertex_type = 'Transaction')
     subgraph_dict, transaction_embed_value_dict  = graph_input.query_target_subgraph(target_id, trans_dict, transaction_value_cols, union_li_cols)
     transaction_id = int(target_id[(target_id.find('-')+1):])
-    subgraph_dict['target<>R_emaildomain'][1][0]  = 'aol.com'
     pred_prob = invoke_endpoint_with_idx(endpointname = ENDPOINT_NAME, target_id = transaction_id, subgraph_dict = subgraph_dict, n_feats = transaction_embed_value_dict['target'])
     return {
         'statusCode': 200,

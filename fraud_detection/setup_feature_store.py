@@ -19,9 +19,7 @@ def main(path_db='../data/feat_store_publish.db'):
             value = features[i]
             store.put(key, value, dtype=np.float32, wb=wb)
 
-        # add average feats of neighbour txn nodes to entity nodes
 
-    
     with store.db.begin() as wb:
         neighbor_feat = store.get(key=int(nodes_id[0]), default_value= np.zeros(371), wb=wb)
     print(neighbor_feat.shape)
